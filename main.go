@@ -58,6 +58,26 @@ func main() {
 					bot.Send(tgbotapi.NewMessage(chatID, text))
 				}
 
+			case callback.Data == "back_main":
+				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать в PGT70")
+				msg.ReplyMarkup = persistentKeyboard()
+				bot.Send(msg)
+
+			case callback.Data == "back_categories":
+				categories := map[string]bool{}
+				for _, p := range products {
+					categories[p.Category] = true
+				}
+				msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
+				msg.ReplyMarkup = categoriesKeyboard(categories)
+				bot.Send(msg)
+
+			case strings.HasPrefix(callback.Data, "back_products_"):
+				category := strings.TrimPrefix(callback.Data, "back_products_")
+				msg := tgbotapi.NewMessage(chatID, "Товары в категории "+category+":")
+				msg.ReplyMarkup = productsInCategoryKeyboard(category)
+				bot.Send(msg)
+
 			case strings.HasPrefix(callback.Data, "category_"):
 				category := strings.TrimPrefix(callback.Data, "category_")
 				msg := tgbotapi.NewMessage(chatID, "Товары в категории "+category+":")
@@ -93,26 +113,6 @@ func main() {
 			case callback.Data == "admin_add_product":
 				drafts[chatID] = &ProductDraft{Step: StepWaitingName}
 				bot.Send(tgbotapi.NewMessage(chatID, "Введите название товара:"))
-
-			case callback.Data == "back_main":
-				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать в PGT70")
-				msg.ReplyMarkup = mainMenuKeyboard()
-				bot.Send(msg)
-
-			case callback.Data == "back_categories":
-				categories := map[string]bool{}
-				for _, p := range products {
-					categories[p.Category] = true
-				}
-				msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(categories)
-				bot.Send(msg)
-
-			case strings.HasPrefix(callback.Data, "back_products_"):
-				category := strings.TrimPrefix(callback.Data, "back_products_")
-				msg := tgbotapi.NewMessage(chatID, "Товары в категории "+category+":")
-				msg.ReplyMarkup = productsInCategoryKeyboard(category)
-				bot.Send(msg)
 			}
 
 			bot.Request(tgbotapi.NewCallback(callback.ID, ""))
@@ -130,7 +130,7 @@ func main() {
 
 		if update.Message.Text == "/start" {
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Добро пожаловать в PGT70")
-			msg.ReplyMarkup = mainMenuKeyboard()
+			msg.ReplyMarkup = persistentKeyboard()
 			bot.Send(msg)
 		}
 
@@ -142,6 +142,36 @@ func main() {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Админ-панель")
 				msg.ReplyMarkup = adminMenuKeyboard()
 				bot.Send(msg)
+			}
+		}
+
+		if update.Message.Text == "📋 Каталог" {
+			categories := map[string]bool{}
+			for _, p := range products {
+				categories[p.Category] = true
+			}
+			if len(categories) == 0 {
+				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Каталог пока пуст."))
+			} else {
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите категорию:")
+				msg.ReplyMarkup = categoriesKeyboard(categories)
+				bot.Send(msg)
+			}
+		}
+
+		if update.Message.Text == "🛒 Корзина" {
+			cart := getCart(update.Message.Chat.ID)
+			if len(cart) == 0 {
+				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Ваша корзина пуста."))
+			} else {
+				text := "Ваша корзина:\n"
+				var total float64
+				for _, item := range cart {
+					text += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+					total += item.Price
+				}
+				text += fmt.Sprintf("\nИтого: %.2f₽", total)
+				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, text))
 			}
 		}
 	}
