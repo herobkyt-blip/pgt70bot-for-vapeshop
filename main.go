@@ -60,6 +60,9 @@ func main() {
 						bot.Send(tgbotapi.NewMessage(chatID, "Добавлено в корзину: "+product.Name))
 					}
 				}
+			case callback.Data == "admin_add_product":
+				drafts[chatID] = &ProductDraft{Step: StepWaitingName}
+				bot.Send(tgbotapi.NewMessage(chatID, "Введите название товара:"))
 			}
 
 			bot.Request(tgbotapi.NewCallback(callback.ID, ""))
@@ -67,6 +70,11 @@ func main() {
 		}
 
 		if update.Message == nil {
+			continue
+		}
+
+		if draft, exists := drafts[update.Message.Chat.ID]; exists {
+			handleAdminStep(bot, update.Message, draft)
 			continue
 		}
 
@@ -81,8 +89,45 @@ func main() {
 			if !cfg.IsAdmin(userID) {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Доступ запрещён."))
 			} else {
-				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Админ-панель"))
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Админ-панель")
+				msg.ReplyMarkup = adminMenuKeyboard()
+				bot.Send(msg)
 			}
 		}
+	}
+}
+
+func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *ProductDraft) {
+	chatID := message.Chat.ID
+
+	switch draft.Step {
+	case StepWaitingName:
+		draft.Name = message.Text
+		draft.Step = StepWaitingPrice
+		bot.Send(tgbotapi.NewMessage(chatID, "Введите цену товара (числом):"))
+	case StepWaitingPrice:
+		price, err := strconv.ParseFloat(message.Text, 64)
+		if err != nil {
+			bot.Send(tgbotapi.NewMessage(chatID, "Это не похоже на число. Введите цену ещё раз:"))
+			return
+		}
+		draft.Price = price
+		draft.Step = StepWaitingDesc
+		bot.Send(tgbotapi.NewMessage(chatID, "Введите описание товара:"))
+	case StepWaitingDesc:
+		draft.Description = message.Text
+
+		newProduct := Product{
+			ID:          len(products) + 1,
+			Name:        draft.Name,
+			Price:       draft.Price,
+			Description: draft.Description,
+			InStock:     true,
+		}
+		products = append(products, newProduct)
+
+		delete(drafts, chatID)
+
+		bot.Send(tgbotapi.NewMessage(chatID, "✅Товар добавлен: "+newProduct.Name))
 	}
 }

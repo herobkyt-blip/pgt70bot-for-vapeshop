@@ -22,3 +22,11 @@ func productKeyboard(id int) tgbotapi.InlineKeyboardMarkup {
 		),
 	)
 }
+
+func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Добавить товар", "admin_add_product"),
+		),
+	)
+}
