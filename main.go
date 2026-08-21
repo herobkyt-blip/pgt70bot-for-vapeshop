@@ -22,6 +22,16 @@ func main() {
 	updates := bot.GetUpdatesChan(u)
 
 	for update := range updates {
+		if update.CallbackQuery != nil {
+			callback := update.CallbackQuery
+			if callback.Data == "catalog" {
+				text := buildCatalogText()
+				msg := tgbotapi.NewMessage(callback.Message.Chat.ID, text)
+				bot.Send(msg)
+			}
+			bot.Request(tgbotapi.NewCallback(callback.ID, ""))
+			continue
+		}
 		if update.Message == nil {
 			continue
 		}
