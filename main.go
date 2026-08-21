@@ -75,5 +75,14 @@ func main() {
 			msg.ReplyMarkup = mainMenuKeyboard()
 			bot.Send(msg)
 		}
+
+		if update.Message.Text == "/admin" {
+			userID := update.Message.From.ID
+			if !cfg.IsAdmin(userID) {
+				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Доступ запрещён."))
+			} else {
+				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Админ-панель"))
+			}
+		}
 	}
 }
