@@ -1,7 +1,5 @@
 package main
 
-import "fmt"
-
 type Product struct {
 	ID          int
 	Name        string
@@ -16,10 +14,12 @@ var products = []Product{
 	{ID: 3, Name: "Жидкость PODONKI", Price: 450, Description: "Жидкость для электронных сигарет PODONKI", InStock: true},
 }
 
-func buildCatalogText() string {
-	text := "Наш каталог:\n\n"
+func findProduct(id int) (Product, bool) {
 	for _, p := range products {
-		text += fmt.Sprintf("%s - %.2f₽\n%s\n\n", p.Name, p.Price, p.Description)
+		if p.ID == id {
+			return p, true
+
+		}
 	}
-	return text
+	return Product{}, false
 }
