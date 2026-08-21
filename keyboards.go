@@ -29,6 +29,8 @@ func categoriesKeyboard(categories map[string]bool) tgbotapi.InlineKeyboardMarku
 		button := tgbotapi.NewInlineKeyboardButtonData(category, "category_"+category)
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
 	}
+	backButton := tgbotapi.NewInlineKeyboardButtonData("🔙Назад", "back_main")
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(backButton))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 
@@ -40,6 +42,8 @@ func productsInCategoryKeyboard(category string) tgbotapi.InlineKeyboardMarkup {
 			rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
 		}
 	}
+	backButton := tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "back_categories")
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(backButton))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 
@@ -53,5 +57,7 @@ func variantsKeyboard(product Product) tgbotapi.InlineKeyboardMarkup {
 		button := tgbotapi.NewInlineKeyboardButtonData(label, fmt.Sprintf("variant_%d_%d", product.ID, i))
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
 	}
+	backButton := tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "back_products_"+product.Category)
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(backButton))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }

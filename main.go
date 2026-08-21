@@ -93,6 +93,26 @@ func main() {
 			case callback.Data == "admin_add_product":
 				drafts[chatID] = &ProductDraft{Step: StepWaitingName}
 				bot.Send(tgbotapi.NewMessage(chatID, "Введите название товара:"))
+
+			case callback.Data == "back_main":
+				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать в PGT70")
+				msg.ReplyMarkup = mainMenuKeyboard()
+				bot.Send(msg)
+
+			case callback.Data == "back_categories":
+				categories := map[string]bool{}
+				for _, p := range products {
+					categories[p.Category] = true
+				}
+				msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
+				msg.ReplyMarkup = categoriesKeyboard(categories)
+				bot.Send(msg)
+
+			case strings.HasPrefix(callback.Data, "back_products_"):
+				category := strings.TrimPrefix(callback.Data, "back_products_")
+				msg := tgbotapi.NewMessage(chatID, "Товары в категории "+category+":")
+				msg.ReplyMarkup = productsInCategoryKeyboard(category)
+				bot.Send(msg)
 			}
 
 			bot.Request(tgbotapi.NewCallback(callback.ID, ""))

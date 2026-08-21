@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-const productFile = "prodects.json"
+const productFile = "products.json"
 
 func saveProducts() {
 	data, err := json.MarshalIndent(products, "", " ")
