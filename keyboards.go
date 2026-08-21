@@ -10,6 +10,7 @@ func mainMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Каталог", "catalog"),
+			tgbotapi.NewInlineKeyboardButtonData("Корзина", "cart"),
 		),
 	)
 }
