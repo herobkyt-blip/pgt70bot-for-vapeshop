@@ -26,7 +26,8 @@ func main() {
 			continue
 		}
 		if update.Message.Text == "/start" {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Привет!")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Добро пожаловать в PGT70!")
+			msg.ReplyMarkup = mainMenuKeyboard()
 			bot.Send(msg)
 		}
 	}
