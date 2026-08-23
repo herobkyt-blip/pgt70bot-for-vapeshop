@@ -22,3 +22,21 @@ func loadProducts() {
 	}
 	json.Unmarshal(data, &products)
 }
+
+const categoriesFile = "categories.json"
+
+func saveCategories() {
+	data, err := json.MarshalIndent(categories, "", " ")
+	if err != nil {
+		return
+	}
+	os.WriteFile(categoriesFile, data, 0644)
+}
+
+func loadCategories() {
+	data, err := os.ReadFile(categoriesFile)
+	if err != nil {
+		return
+	}
+	json.Unmarshal(data, &categories)
+}

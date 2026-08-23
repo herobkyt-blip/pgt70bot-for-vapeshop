@@ -12,6 +12,7 @@ import (
 func main() {
 	cfg := LoadConfig()
 	loadProducts()
+	loadCategories()
 
 	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
 	if err != nil {
@@ -31,15 +32,15 @@ func main() {
 
 			switch {
 			case callback.Data == "catalog":
-				categories := map[string]bool{}
+				cats := map[string]bool{}
 				for _, p := range products {
-					categories[p.Category] = true
+					cats[p.Category] = true
 				}
-				if len(categories) == 0 {
+				if len(cats) == 0 {
 					bot.Send(tgbotapi.NewMessage(chatID, "Каталог пока пуст."))
 				} else {
 					msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-					msg.ReplyMarkup = categoriesKeyboard(categories)
+					msg.ReplyMarkup = categoriesKeyboard(cats)
 					bot.Send(msg)
 				}
 
@@ -64,12 +65,12 @@ func main() {
 				bot.Send(msg)
 
 			case callback.Data == "back_categories":
-				categories := map[string]bool{}
+				cats := map[string]bool{}
 				for _, p := range products {
-					categories[p.Category] = true
+					cats[p.Category] = true
 				}
 				msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(categories)
+				msg.ReplyMarkup = categoriesKeyboard(cats)
 				bot.Send(msg)
 
 			case strings.HasPrefix(callback.Data, "back_products_"):
@@ -113,6 +114,18 @@ func main() {
 			case callback.Data == "admin_add_product":
 				drafts[chatID] = &ProductDraft{Step: StepWaitingName}
 				bot.Send(tgbotapi.NewMessage(chatID, "Введите название товара:"))
+
+			case callback.Data == "admin_add_category":
+				drafts[chatID] = &ProductDraft{Step: StepWaitingCategoryName}
+				bot.Send(tgbotapi.NewMessage(chatID, "Введите название категории:"))
+
+			case strings.HasPrefix(callback.Data, "pickcat_"):
+				if draft, exists := drafts[chatID]; exists && draft.Step == StepWaitingCategory {
+					category := strings.TrimPrefix(callback.Data, "pickcat_")
+					draft.Category = category
+					draft.Step = StepWaitingColor
+					bot.Send(tgbotapi.NewMessage(chatID, "Введите цвет (или напишите \"Стандарт\", если цвета нет):"))
+				}
 			}
 
 			bot.Request(tgbotapi.NewCallback(callback.ID, ""))
@@ -146,15 +159,15 @@ func main() {
 		}
 
 		if update.Message.Text == "📋 Каталог" {
-			categories := map[string]bool{}
+			cats := map[string]bool{}
 			for _, p := range products {
-				categories[p.Category] = true
+				cats[p.Category] = true
 			}
-			if len(categories) == 0 {
+			if len(cats) == 0 {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Каталог пока пуст."))
 			} else {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(categories)
+				msg.ReplyMarkup = categoriesKeyboard(cats)
 				bot.Send(msg)
 			}
 		}
@@ -197,11 +210,14 @@ func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *Pro
 	case StepWaitingDesc:
 		draft.Description = message.Text
 		draft.Step = StepWaitingCategory
-		bot.Send(tgbotapi.NewMessage(chatID, "Введите категорию:"))
-	case StepWaitingCategory:
-		draft.Category = message.Text
-		draft.Step = StepWaitingColor
-		bot.Send(tgbotapi.NewMessage(chatID, "Введите цвет (или напишите \"Стандарт\", если цвета нет):"))
+		if len(categories) == 0 {
+			bot.Send(tgbotapi.NewMessage(chatID, "Сначала добавьте хотя бы одну категорию через админ-панель."))
+			delete(drafts, chatID)
+			return
+		}
+		msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
+		msg.ReplyMarkup = adminCategoriesKeyboard()
+		bot.Send(msg)
 	case StepWaitingColor:
 		draft.Color = message.Text
 
@@ -220,5 +236,10 @@ func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *Pro
 		delete(drafts, chatID)
 
 		bot.Send(tgbotapi.NewMessage(chatID, "✅Товар добавлен: "+newProduct.Name))
+	case StepWaitingCategoryName:
+		categories = append(categories, message.Text)
+		saveCategories()
+		delete(drafts, chatID)
+		bot.Send(tgbotapi.NewMessage(chatID, "✅Категория добавлена: "+message.Text))
 	}
 }

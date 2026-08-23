@@ -19,12 +19,13 @@ func getCart(userID int64) []CartItem {
 type AdminStep string
 
 const (
-	StepNone            AdminStep = ""
-	StepWaitingName     AdminStep = "waiting_name"
-	StepWaitingPrice    AdminStep = "waiting_price"
-	StepWaitingDesc     AdminStep = "waiting_description"
-	StepWaitingCategory AdminStep = "waiting_category"
-	StepWaitingColor    AdminStep = "waiting_color"
+	StepNone                AdminStep = ""
+	StepWaitingName         AdminStep = "waiting_name"
+	StepWaitingPrice        AdminStep = "waiting_price"
+	StepWaitingDesc         AdminStep = "waiting_description"
+	StepWaitingCategory     AdminStep = "waiting_category"
+	StepWaitingColor        AdminStep = "waiting_color"
+	StepWaitingCategoryName AdminStep = "waiting_category_name"
 )
 
 type ProductDraft struct {

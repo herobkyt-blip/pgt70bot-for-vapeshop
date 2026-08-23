@@ -20,6 +20,9 @@ func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("Добавить товар", "admin_add_product"),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Добавить категорию", "admin_add_category"),
+		),
 	)
 }
 
@@ -69,4 +72,13 @@ func persistentKeyboard() tgbotapi.ReplyKeyboardMarkup {
 			tgbotapi.NewKeyboardButton("🛒 Корзина"),
 		),
 	)
+}
+
+func adminCategoriesKeyboard() tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	for _, category := range categories {
+		button := tgbotapi.NewInlineKeyboardButtonData(category, "pickcat_"+category)
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+	}
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
