@@ -32,15 +32,11 @@ func main() {
 
 			switch {
 			case callback.Data == "catalog":
-				cats := map[string]bool{}
-				for _, p := range products {
-					cats[p.Category] = true
-				}
-				if len(cats) == 0 {
+				if len(categories) == 0 {
 					bot.Send(tgbotapi.NewMessage(chatID, "Каталог пока пуст."))
 				} else {
 					msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-					msg.ReplyMarkup = categoriesKeyboard(cats)
+					msg.ReplyMarkup = categoriesKeyboard(categories)
 					bot.Send(msg)
 				}
 
@@ -65,12 +61,8 @@ func main() {
 				bot.Send(msg)
 
 			case callback.Data == "back_categories":
-				cats := map[string]bool{}
-				for _, p := range products {
-					cats[p.Category] = true
-				}
 				msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(cats)
+				msg.ReplyMarkup = categoriesKeyboard(categories)
 				bot.Send(msg)
 
 			case strings.HasPrefix(callback.Data, "back_products_"):
@@ -159,15 +151,11 @@ func main() {
 		}
 
 		if update.Message.Text == "📋 Каталог" {
-			cats := map[string]bool{}
-			for _, p := range products {
-				cats[p.Category] = true
-			}
-			if len(cats) == 0 {
+			if len(categories) == 0 {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Каталог пока пуст."))
 			} else {
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(cats)
+				msg.ReplyMarkup = categoriesKeyboard(categories)
 				bot.Send(msg)
 			}
 		}

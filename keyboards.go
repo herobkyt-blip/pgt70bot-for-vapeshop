@@ -6,15 +6,6 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func mainMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
-	return tgbotapi.NewInlineKeyboardMarkup(
-		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Каталог", "catalog"),
-			tgbotapi.NewInlineKeyboardButtonData("Корзина", "cart"),
-		),
-	)
-}
-
 func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
@@ -26,9 +17,9 @@ func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 	)
 }
 
-func categoriesKeyboard(categories map[string]bool) tgbotapi.InlineKeyboardMarkup {
+func categoriesKeyboard(categoryList []string) tgbotapi.InlineKeyboardMarkup {
 	var rows [][]tgbotapi.InlineKeyboardButton
-	for category := range categories {
+	for _, category := range categoryList {
 		button := tgbotapi.NewInlineKeyboardButtonData(category, "category_"+category)
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
 	}
