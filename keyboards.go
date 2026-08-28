@@ -110,3 +110,12 @@ func deleteCategoryKeyboard() tgbotapi.InlineKeyboardMarkup {
 	}
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
+
+func deleteProductKeyboad() tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	for _, p := range products {
+		button := tgbotapi.NewInlineKeyboardButtonData(p.Name, fmt.Sprintf("delprod_%d", p.ID))
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+	}
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}

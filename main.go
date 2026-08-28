@@ -142,6 +142,21 @@ func main() {
 
 				bot.Send(tgbotapi.NewMessage(chatID, "🗑️Категория удалена: "+categoryName))
 
+			case strings.HasPrefix(callback.Data, "delprod_"):
+				idStr := strings.TrimPrefix(callback.Data, "delprod_")
+				id, err := strconv.Atoi(idStr)
+				if err == nil {
+					newProducts := []Product{}
+					for _, p := range products {
+						if p.ID != id {
+							newProducts = append(newProducts, p)
+						}
+					}
+					products = newProducts
+					saveProducts()
+					bot.Send(tgbotapi.NewMessage(chatID, "🗑️Товар удалён."))
+				}
+
 			case callback.Data == "admin_main_menu":
 				msg := tgbotapi.NewMessage(chatID, "Админ-панель")
 				msg.ReplyMarkup = adminMenuKeyboard()
@@ -165,6 +180,15 @@ func main() {
 				msg := tgbotapi.NewMessage(chatID, "Управление товарами:")
 				msg.ReplyMarkup = adminProductsMenuKeyboard()
 				bot.Send(msg)
+
+			case callback.Data == "admin_delete_product":
+				if len(products) == 0 {
+					bot.Send(tgbotapi.NewMessage(chatID, "Нет товаров для удаления."))
+				} else {
+					msg := tgbotapi.NewMessage(chatID, "Выберите товар для удаления:")
+					msg.ReplyMarkup = deleteProductKeyboad()
+					bot.Send(msg)
+				}
 			}
 
 			bot.Request(tgbotapi.NewCallback(callback.ID, ""))
