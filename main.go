@@ -119,6 +119,29 @@ func main() {
 					bot.Send(tgbotapi.NewMessage(chatID, "Введите цвет (или напишите \"Стандарт\", если цвета нет):"))
 				}
 
+			case strings.HasPrefix(callback.Data, "delcat_"):
+				categoryName := strings.TrimPrefix(callback.Data, "delcat_")
+
+				newCategories := []string{}
+				for _, c := range categories {
+					if c != categoryName {
+						newCategories = append(newCategories, c)
+					}
+				}
+				categories = newCategories
+				newProducts := []Product{}
+				for _, p := range products {
+					if p.Category != categoryName {
+						newProducts = append(newProducts, p)
+					}
+				}
+				products = newProducts
+
+				saveCategories()
+				saveProducts()
+
+				bot.Send(tgbotapi.NewMessage(chatID, "🗑️Категория удалена: "+categoryName))
+
 			case callback.Data == "admin_main_menu":
 				msg := tgbotapi.NewMessage(chatID, "Админ-панель")
 				msg.ReplyMarkup = adminMenuKeyboard()
@@ -128,6 +151,15 @@ func main() {
 				msg := tgbotapi.NewMessage(chatID, "Управление категориями:")
 				msg.ReplyMarkup = adminCategoriesMenuKeyboard()
 				bot.Send(msg)
+
+			case callback.Data == "admin_delete_category":
+				if len(categories) == 0 {
+					bot.Send(tgbotapi.NewMessage(chatID, "Нет категорий для удаления."))
+				} else {
+					msg := tgbotapi.NewMessage(chatID, "Выберите категорию для удаления:")
+					msg.ReplyMarkup = deleteCategoryKeyboard()
+					bot.Send(msg)
+				}
 
 			case callback.Data == "admin_products_menu":
 				msg := tgbotapi.NewMessage(chatID, "Управление товарами:")

@@ -101,3 +101,12 @@ func adminCategoriesKeyboard() tgbotapi.InlineKeyboardMarkup {
 	}
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
+
+func deleteCategoryKeyboard() tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	for _, category := range categories {
+		button := tgbotapi.NewInlineKeyboardButtonData(category, "delcat_"+category)
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+	}
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}
