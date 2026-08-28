@@ -118,6 +118,21 @@ func main() {
 					draft.Step = StepWaitingColor
 					bot.Send(tgbotapi.NewMessage(chatID, "Введите цвет (или напишите \"Стандарт\", если цвета нет):"))
 				}
+
+			case callback.Data == "admin_main_menu":
+				msg := tgbotapi.NewMessage(chatID, "Админ-панель")
+				msg.ReplyMarkup = adminMenuKeyboard()
+				bot.Send(msg)
+
+			case callback.Data == "admin_categories_menu":
+				msg := tgbotapi.NewMessage(chatID, "Управление категориями:")
+				msg.ReplyMarkup = adminCategoriesMenuKeyboard()
+				bot.Send(msg)
+
+			case callback.Data == "admin_products_menu":
+				msg := tgbotapi.NewMessage(chatID, "Управление товарами:")
+				msg.ReplyMarkup = adminProductsMenuKeyboard()
+				bot.Send(msg)
 			}
 
 			bot.Request(tgbotapi.NewCallback(callback.ID, ""))

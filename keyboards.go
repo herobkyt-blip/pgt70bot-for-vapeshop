@@ -9,10 +9,38 @@ import (
 func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Добавить товар", "admin_add_product"),
+			tgbotapi.NewInlineKeyboardButtonData("📁 Категории", "admin_categories_menu"),
 		),
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Добавить категорию", "admin_add_category"),
+			tgbotapi.NewInlineKeyboardButtonData("📦 Товары", "admin_products_menu"),
+		),
+	)
+}
+
+func adminCategoriesMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("➕Добавить категорию", "admin_add_category"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("🗑️ Удалить категорию", "admin_delete_category"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "admin_main_menu"),
+		),
+	)
+}
+
+func adminProductsMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("➕Добавить товар", "admin_add_product"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("🗑️ Удалить товар", "admin_delete_product"),
+		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "admin_main_menu"),
 		),
 	)
 }

@@ -1,3 +1,4 @@
 .env
 products.json
 categories.json
+*.exe
