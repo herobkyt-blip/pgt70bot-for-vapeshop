@@ -53,7 +53,7 @@ func main() {
 					}
 					text += fmt.Sprintf("\nИтого: %.2f₽", total)
 					msg := tgbotapi.NewMessage(chatID, text)
-					msg.ReplyMarkup = checkoutKeyboard()
+					msg.ReplyMarkup = cartKeyboard(cart)
 					bot.Send(msg)
 				}
 
@@ -74,6 +74,38 @@ func main() {
 
 					delete(carts, chatID)
 					bot.Send(tgbotapi.NewMessage(chatID, "✅ Заказ оформлен! Скоро с вами свяжутся."))
+				}
+
+			case strings.HasPrefix(callback.Data, "removecart_"):
+				indexStr := strings.TrimPrefix(callback.Data, "removecart_")
+				index, err := strconv.Atoi(indexStr)
+				if err == nil {
+					cart := getCart(chatID)
+					if index >= 0 && index < len(cart) {
+						newCart := []CartItem{}
+						for i, item := range cart {
+							if i != index {
+								newCart = append(newCart, item)
+							}
+						}
+						carts[chatID] = newCart
+					}
+				}
+
+				cart := getCart(chatID)
+				if len(cart) == 0 {
+					bot.Send(tgbotapi.NewMessage(chatID, "Ваша корзина пуста."))
+				} else {
+					text := "Ваша корзина:\n"
+					var total float64
+					for _, item := range cart {
+						text += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+						total += item.Price
+					}
+					text += fmt.Sprintf("\nИтого: %.2f₽", total)
+					msg := tgbotapi.NewMessage(chatID, text)
+					msg.ReplyMarkup = cartKeyboard(cart)
+					bot.Send(msg)
 				}
 
 			case callback.Data == "back_main":
@@ -295,7 +327,7 @@ func main() {
 				}
 				text += fmt.Sprintf("\nИтого: %.2f₽", total)
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
-				msg.ReplyMarkup = checkoutKeyboard()
+				msg.ReplyMarkup = cartKeyboard(cart)
 				bot.Send(msg)
 			}
 		}

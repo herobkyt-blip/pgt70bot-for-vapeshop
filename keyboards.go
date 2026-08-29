@@ -135,3 +135,16 @@ func checkoutKeyboard() tgbotapi.InlineKeyboardMarkup {
 		),
 	)
 }
+
+func cartKeyboard(cart []CartItem) tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	for i, item := range cart {
+		label := fmt.Sprintf("❌ %s (%s)", item.ProductName, item.Color)
+		button := tgbotapi.NewInlineKeyboardButtonData(label, fmt.Sprintf("removecart_%d", i))
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+	}
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("✅ Оформить заказ", "checkout"),
+	))
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}
