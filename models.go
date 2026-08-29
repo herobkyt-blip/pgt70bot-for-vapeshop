@@ -17,6 +17,7 @@ type Product struct {
 
 var products = []Product{}
 var categories = []string{}
+var banners = map[string]string{}
 
 func findProduct(id int) (Product, bool) {
 	for _, p := range products {

@@ -13,6 +13,7 @@ func main() {
 	cfg := LoadConfig()
 	loadProducts()
 	loadCategories()
+	loadBanners()
 
 	bot, err := tgbotapi.NewBotAPI(cfg.BotToken)
 	if err != nil {
@@ -35,9 +36,7 @@ func main() {
 				if len(categories) == 0 {
 					bot.Send(tgbotapi.NewMessage(chatID, "Каталог пока пуст."))
 				} else {
-					msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-					msg.ReplyMarkup = categoriesKeyboard(categories)
-					bot.Send(msg)
+					sendWithBanner(bot, chatID, "catalog", "Выберите категорию:", categoriesKeyboard(categories))
 				}
 
 			case callback.Data == "cart":
@@ -109,26 +108,18 @@ func main() {
 				}
 
 			case callback.Data == "back_main":
-				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать в BarbieBot")
-				msg.ReplyMarkup = persistentKeyboard()
-				bot.Send(msg)
+				sendWithBanner(bot, chatID, "welcome", "Добро пожаловать в BarbieBot", persistentKeyboard())
 
 			case callback.Data == "back_categories":
-				msg := tgbotapi.NewMessage(chatID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(categories)
-				bot.Send(msg)
+				sendWithBanner(bot, chatID, "catalog", "Выберите категорию:", categoriesKeyboard(categories))
 
 			case strings.HasPrefix(callback.Data, "back_products_"):
 				category := strings.TrimPrefix(callback.Data, "back_products_")
-				msg := tgbotapi.NewMessage(chatID, "Товары в категории "+category+":")
-				msg.ReplyMarkup = productsInCategoryKeyboard(category)
-				bot.Send(msg)
+				sendWithBanner(bot, chatID, category, "Товары в категории "+category+":", productsInCategoryKeyboard(category))
 
 			case strings.HasPrefix(callback.Data, "category_"):
 				category := strings.TrimPrefix(callback.Data, "category_")
-				msg := tgbotapi.NewMessage(chatID, "Товары в категории "+category+":")
-				msg.ReplyMarkup = productsInCategoryKeyboard(category)
-				bot.Send(msg)
+				sendWithBanner(bot, chatID, category, "Товары в категории "+category+":", productsInCategoryKeyboard(category))
 
 			case strings.HasPrefix(callback.Data, "product_"):
 				idStr := strings.TrimPrefix(callback.Data, "product_")
@@ -264,6 +255,16 @@ func main() {
 				msg.ReplyMarkup = adminProductsMenuKeyboard()
 				bot.Send(msg)
 
+			case callback.Data == "admin_banners_menu":
+				msg := tgbotapi.NewMessage(chatID, "Выберите раздел, для которого хотите задать баннер:")
+				msg.ReplyMarkup = bannersMenuKeyboard()
+				bot.Send(msg)
+
+			case strings.HasPrefix(callback.Data, "setbanner_"):
+				section := strings.TrimPrefix(callback.Data, "setbanner_")
+				drafts[chatID] = &ProductDraft{Step: StepWaitingBanner, BannerSection: section}
+				bot.Send(tgbotapi.NewMessage(chatID, "Отправьте фото-баннер для этого раздела:"))
+
 			case callback.Data == "admin_delete_product":
 				if len(products) == 0 {
 					bot.Send(tgbotapi.NewMessage(chatID, "Нет товаров для удаления."))
@@ -288,9 +289,7 @@ func main() {
 		}
 
 		if update.Message.Text == "/start" {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Добро пожаловать в BarbieBot")
-			msg.ReplyMarkup = persistentKeyboard()
-			bot.Send(msg)
+			sendWithBanner(bot, update.Message.Chat.ID, "welcome", "Добро пожаловать в BarbieBot", persistentKeyboard())
 		}
 
 		if update.Message.Text == "/admin" {
@@ -308,9 +307,7 @@ func main() {
 			if len(categories) == 0 {
 				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Каталог пока пуст."))
 			} else {
-				msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Выберите категорию:")
-				msg.ReplyMarkup = categoriesKeyboard(categories)
-				bot.Send(msg)
+				sendWithBanner(bot, update.Message.Chat.ID, "catalog", "Выберите категорию:", categoriesKeyboard(categories))
 			}
 		}
 
@@ -383,5 +380,29 @@ func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *Pro
 		saveCategories()
 		delete(drafts, chatID)
 		bot.Send(tgbotapi.NewMessage(chatID, "✅Категория добавлена: "+message.Text))
+
+	case StepWaitingBanner:
+		if len(message.Photo) == 0 {
+			bot.Send(tgbotapi.NewMessage(chatID, "Это не похоже на фото. Отправьте фото-баннер:"))
+			return
+		}
+		banners[draft.BannerSection] = message.Photo[len(message.Photo)-1].FileID
+		saveBanners()
+		delete(drafts, chatID)
+		bot.Send(tgbotapi.NewMessage(chatID, "✅Баннер сохранён."))
+	}
+}
+
+func sendWithBanner(bot *tgbotapi.BotAPI, chatID int64, bannerKey string, text string, keyboard interface{}) {
+	fileID, exists := banners[bannerKey]
+	if exists && fileID != "" {
+		photo := tgbotapi.NewPhoto(chatID, tgbotapi.FileID(fileID))
+		photo.Caption = text
+		photo.ReplyMarkup = keyboard
+		bot.Send(photo)
+	} else {
+		msg := tgbotapi.NewMessage(chatID, text)
+		msg.ReplyMarkup = keyboard
+		bot.Send(msg)
 	}
 }

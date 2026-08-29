@@ -6,6 +6,23 @@ import (
 )
 
 const productFile = "products.json"
+const bannersFile = "banners.json"
+
+func saveBanners() {
+	data, err := json.MarshalIndent(banners, "", " ")
+	if err != nil {
+		return
+	}
+	os.WriteFile(bannersFile, data, 0644)
+}
+
+func loadBanners() {
+	data, err := os.ReadFile(bannersFile)
+	if err != nil {
+		return
+	}
+	json.Unmarshal(data, &banners)
+}
 
 func saveProducts() {
 	data, err := json.MarshalIndent(products, "", " ")

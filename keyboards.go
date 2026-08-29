@@ -14,6 +14,9 @@ func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("📦 Товары", "admin_products_menu"),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("🖼 Баннеры", "admin_banners_menu"),
+		),
 	)
 }
 
@@ -145,6 +148,24 @@ func cartKeyboard(cart []CartItem) tgbotapi.InlineKeyboardMarkup {
 	}
 	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
 		tgbotapi.NewInlineKeyboardButtonData("✅ Оформить заказ", "checkout"),
+	))
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}
+
+func bannersMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("👋 Приветствие", "setbanner_welcome"),
+	))
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("📁 Каталог (список категорий)", "setbanner_catalog"),
+	))
+	for _, category := range categories {
+		button := tgbotapi.NewInlineKeyboardButtonData(category, "setbanner_"+category)
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+	}
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "admin_main_menu"),
 	))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
