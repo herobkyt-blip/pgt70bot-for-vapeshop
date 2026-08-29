@@ -17,6 +17,14 @@ func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 	)
 }
 
+func confirmVariantsKeyboard() tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Подтвердить✅", "confirm_variants"),
+		),
+	)
+}
+
 func adminCategoriesMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 	return tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(

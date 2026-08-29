@@ -56,7 +56,7 @@ func main() {
 				}
 
 			case callback.Data == "back_main":
-				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать в PGT70")
+				msg := tgbotapi.NewMessage(chatID, "Добро пожаловать в BarbieBot")
 				msg.ReplyMarkup = persistentKeyboard()
 				bot.Send(msg)
 
@@ -117,6 +117,28 @@ func main() {
 					draft.Category = category
 					draft.Step = StepWaitingColor
 					bot.Send(tgbotapi.NewMessage(chatID, "Введите цвет (или напишите \"Стандарт\", если цвета нет):"))
+				}
+
+			case callback.Data == "confirm_variants":
+				if draft, exists := drafts[chatID]; exists && draft.Step == StepWaitingColor {
+					var variants []Variant
+					for _, color := range draft.Colors {
+						variants = append(variants, Variant{Color: color, Price: draft.Price, InStock: true})
+					}
+
+					newProduct := Product{
+						ID:          len(products) + 1,
+						Name:        draft.Name,
+						Description: draft.Description,
+						Category:    draft.Category,
+						Variants:    variants,
+					}
+					products = append(products, newProduct)
+					saveProducts()
+
+					delete(drafts, chatID)
+
+					bot.Send(tgbotapi.NewMessage(chatID, "✅Товар добавлен: "+newProduct.Name))
 				}
 
 			case strings.HasPrefix(callback.Data, "delcat_"):
@@ -205,7 +227,7 @@ func main() {
 		}
 
 		if update.Message.Text == "/start" {
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Добро пожаловать в PGT70")
+			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "Добро пожаловать в BarbieBot")
 			msg.ReplyMarkup = persistentKeyboard()
 			bot.Send(msg)
 		}
@@ -278,23 +300,13 @@ func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *Pro
 		msg.ReplyMarkup = adminCategoriesKeyboard()
 		bot.Send(msg)
 	case StepWaitingColor:
-		draft.Color = message.Text
+		draft.Colors = append(draft.Colors, message.Text)
 
-		newProduct := Product{
-			ID:          len(products) + 1,
-			Name:        draft.Name,
-			Description: draft.Description,
-			Category:    draft.Category,
-			Variants: []Variant{
-				{Color: draft.Color, Price: draft.Price, InStock: true},
-			},
-		}
-		products = append(products, newProduct)
-		saveProducts()
+		text := "Добавлен цвет/вкус: " + strings.Join(draft.Colors, ", ") + ". Готово?"
+		msg := tgbotapi.NewMessage(chatID, text)
+		msg.ReplyMarkup = confirmVariantsKeyboard()
+		bot.Send(msg)
 
-		delete(drafts, chatID)
-
-		bot.Send(tgbotapi.NewMessage(chatID, "✅Товар добавлен: "+newProduct.Name))
 	case StepWaitingCategoryName:
 		categories = append(categories, message.Text)
 		saveCategories()

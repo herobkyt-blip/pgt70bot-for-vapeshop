@@ -33,7 +33,7 @@ type ProductDraft struct {
 	Price       float64
 	Description string
 	Category    string
-	Color       string
+	Colors      []string
 	Step        AdminStep
 }
 
