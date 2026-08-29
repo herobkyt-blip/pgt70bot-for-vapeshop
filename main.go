@@ -83,9 +83,16 @@ func main() {
 				if err == nil {
 					if product, found := findProduct(id); found {
 						text := fmt.Sprintf("%s\n%s", product.Name, product.Description)
-						msg := tgbotapi.NewMessage(chatID, text)
-						msg.ReplyMarkup = variantsKeyboard(product)
-						bot.Send(msg)
+						if product.PhotoFileID != "" {
+							photo := tgbotapi.NewPhoto(chatID, tgbotapi.FileID(product.PhotoFileID))
+							photo.Caption = text
+							photo.ReplyMarkup = variantsKeyboard(product)
+							bot.Send(photo)
+						} else {
+							msg := tgbotapi.NewMessage(chatID, text)
+							msg.ReplyMarkup = variantsKeyboard(product)
+							bot.Send(msg)
+						}
 					}
 				}
 
@@ -131,6 +138,7 @@ func main() {
 						Name:        draft.Name,
 						Description: draft.Description,
 						Category:    draft.Category,
+						PhotoFileID: draft.PhotoFileID,
 						Variants:    variants,
 					}
 					products = append(products, newProduct)
@@ -290,6 +298,14 @@ func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *Pro
 		bot.Send(tgbotapi.NewMessage(chatID, "Введите описание товара:"))
 	case StepWaitingDesc:
 		draft.Description = message.Text
+		draft.Step = StepWaitingPhoto
+		bot.Send(tgbotapi.NewMessage(chatID, "Отправьте фото товара:"))
+	case StepWaitingPhoto:
+		if len(message.Photo) == 0 {
+			bot.Send(tgbotapi.NewMessage(chatID, "Это не похоже на фото. Отправьте фото товара:"))
+			return
+		}
+		draft.PhotoFileID = message.Photo[len(message.Photo)-1].FileID
 		draft.Step = StepWaitingCategory
 		if len(categories) == 0 {
 			bot.Send(tgbotapi.NewMessage(chatID, "Сначала добавьте хотя бы одну категорию через админ-панель."))

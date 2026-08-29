@@ -26,6 +26,7 @@ const (
 	StepWaitingCategory     AdminStep = "waiting_category"
 	StepWaitingColor        AdminStep = "waiting_color"
 	StepWaitingCategoryName AdminStep = "waiting_category_name"
+	StepWaitingPhoto        AdminStep = "waiting_photo"
 )
 
 type ProductDraft struct {
@@ -35,6 +36,7 @@ type ProductDraft struct {
 	Category    string
 	Colors      []string
 	Step        AdminStep
+	PhotoFileID string
 }
 
 var drafts = map[int64]*ProductDraft{}
