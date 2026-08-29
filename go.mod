@@ -1,4 +1,4 @@
-module pgt70bot
+module BarbieBot
 
 go 1.26.5
 
