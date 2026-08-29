@@ -127,3 +127,11 @@ func deleteProductKeyboad() tgbotapi.InlineKeyboardMarkup {
 	}
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
+
+func checkoutKeyboard() tgbotapi.InlineKeyboardMarkup {
+	return tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("✅ Оформить заказ", "checkout"),
+		),
+	)
+}

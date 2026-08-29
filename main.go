@@ -52,7 +52,28 @@ func main() {
 						total += item.Price
 					}
 					text += fmt.Sprintf("\nИтого: %.2f₽", total)
-					bot.Send(tgbotapi.NewMessage(chatID, text))
+					msg := tgbotapi.NewMessage(chatID, text)
+					msg.ReplyMarkup = checkoutKeyboard()
+					bot.Send(msg)
+				}
+
+			case callback.Data == "checkout":
+				cart := getCart(chatID)
+				if len(cart) > 0 {
+					orderText := fmt.Sprintf("🆕 Новый заказ от @%s (ID: %d:\n", callback.From.UserName, chatID)
+					var total float64
+					for _, item := range cart {
+						orderText += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+						total += item.Price
+					}
+					orderText += fmt.Sprintf("\nИтого: %.2f₽", total)
+
+					for adminID := range cfg.AdminIDs {
+						bot.Send(tgbotapi.NewMessage(adminID, orderText))
+					}
+
+					delete(carts, chatID)
+					bot.Send(tgbotapi.NewMessage(chatID, "✅ Заказ оформлен! Скоро с вами свяжутся."))
 				}
 
 			case callback.Data == "back_main":
@@ -273,7 +294,9 @@ func main() {
 					total += item.Price
 				}
 				text += fmt.Sprintf("\nИтого: %.2f₽", total)
-				bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, text))
+				msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
+				msg.ReplyMarkup = checkoutKeyboard()
+				bot.Send(msg)
 			}
 		}
 	}
