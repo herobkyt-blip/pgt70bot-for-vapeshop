@@ -9,6 +9,8 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+const disclaimerText = "Данное сообщение носит исключительно информационный характер и не является рекламой. Курение вредит вашему здоровью. 🚭"
+
 func main() {
 	cfg := LoadConfig()
 	loadProducts()
@@ -126,7 +128,7 @@ func main() {
 				id, err := strconv.Atoi(idStr)
 				if err == nil {
 					if product, found := findProduct(id); found {
-						text := fmt.Sprintf("%s\n%s", product.Name, product.Description)
+						text := fmt.Sprintf("%s\n\n%s\n\n%s", product.Name, product.Description, disclaimerText)
 						if product.PhotoFileID != "" {
 							photo := tgbotapi.NewPhoto(chatID, tgbotapi.FileID(product.PhotoFileID))
 							photo.Caption = text
