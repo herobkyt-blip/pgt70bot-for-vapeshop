@@ -128,14 +128,16 @@ func main() {
 				id, err := strconv.Atoi(idStr)
 				if err == nil {
 					if product, found := findProduct(id); found {
-						text := fmt.Sprintf("%s\n\n%s\n\n%s", product.Name, product.Description, disclaimerText)
+						text := fmt.Sprintf("%s\n\n%s\n\n<blockquote>%s</blockquote>", product.Name, product.Description, disclaimerText)
 						if product.PhotoFileID != "" {
 							photo := tgbotapi.NewPhoto(chatID, tgbotapi.FileID(product.PhotoFileID))
 							photo.Caption = text
+							photo.ParseMode = tgbotapi.ModeHTML
 							photo.ReplyMarkup = variantsKeyboard(product)
 							bot.Send(photo)
 						} else {
 							msg := tgbotapi.NewMessage(chatID, text)
+							msg.ParseMode = tgbotapi.ModeHTML
 							msg.ReplyMarkup = variantsKeyboard(product)
 							bot.Send(msg)
 						}
