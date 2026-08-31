@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"math"
 	"strconv"
 	"strings"
 
@@ -10,6 +11,13 @@ import (
 )
 
 const disclaimerText = "Данное сообщение носит исключительно информационный характер и не является рекламой. Курение вредит вашему здоровью. 🚭"
+
+func formatPrice(price float64) string {
+	if price == math.Trunc(price) {
+		return fmt.Sprintf("%.0f", price)
+	}
+	return fmt.Sprintf("%.2f", price)
+}
 
 func main() {
 	cfg := LoadConfig()
@@ -49,10 +57,10 @@ func main() {
 					text := "Ваша корзина:\n"
 					var total float64
 					for _, item := range cart {
-						text += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+						text += fmt.Sprintf("%s (%s) - %s₽\n", item.ProductName, item.Color, formatPrice(item.Price))
 						total += item.Price
 					}
-					text += fmt.Sprintf("\nИтого: %.2f₽", total)
+					text += fmt.Sprintf("\nИтого: %s₽", formatPrice(total))
 					msg := tgbotapi.NewMessage(chatID, text)
 					msg.ReplyMarkup = cartKeyboard(cart)
 					bot.Send(msg)
@@ -64,10 +72,10 @@ func main() {
 					orderText := fmt.Sprintf("🆕 Новый заказ от @%s (ID: %d:\n", callback.From.UserName, chatID)
 					var total float64
 					for _, item := range cart {
-						orderText += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+						orderText += fmt.Sprintf("%s (%s) - %s₽\n", item.ProductName, item.Color, formatPrice(item.Price))
 						total += item.Price
 					}
-					orderText += fmt.Sprintf("\nИтого: %.2f₽", total)
+					orderText += fmt.Sprintf("\nИтого: %s₽", formatPrice(total))
 
 					for adminID := range cfg.AdminIDs {
 						bot.Send(tgbotapi.NewMessage(adminID, orderText))
@@ -100,10 +108,10 @@ func main() {
 					text := "Ваша корзина:\n"
 					var total float64
 					for _, item := range cart {
-						text += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+						text += fmt.Sprintf("%s (%s) - %s₽\n", item.ProductName, item.Color, formatPrice(item.Price))
 						total += item.Price
 					}
-					text += fmt.Sprintf("\nИтого: %.2f₽", total)
+					text += fmt.Sprintf("\nИтого: %s₽", formatPrice(total))
 					msg := tgbotapi.NewMessage(chatID, text)
 					msg.ReplyMarkup = cartKeyboard(cart)
 					bot.Send(msg)
@@ -152,7 +160,11 @@ func main() {
 					if err1 == nil && err2 == nil {
 						if product, found := findProduct(productID); found && variantIndex < len(product.Variants) {
 							variant := product.Variants[variantIndex]
-							addToCart(chatID, CartItem{ProductName: product.Name, Color: variant.Color, Price: variant.Price})
+							price := variant.Price - product.DiscountAmount
+							if price < 0 {
+								price = 0
+							}
+							addToCart(chatID, CartItem{ProductName: product.Name, Color: variant.Color, Price: price})
 							bot.Send(tgbotapi.NewMessage(chatID, "Добавлено в корзину: "+product.Name+" ("+variant.Color+")"))
 						}
 					}
@@ -269,6 +281,23 @@ func main() {
 				drafts[chatID] = &ProductDraft{Step: StepWaitingBanner, BannerSection: section}
 				bot.Send(tgbotapi.NewMessage(chatID, "Отправьте фото-баннер для этого раздела:"))
 
+			case callback.Data == "admin_discounts_menu":
+				if len(products) == 0 {
+					bot.Send(tgbotapi.NewMessage(chatID, "Нет товаров для скидки."))
+				} else {
+					msg := tgbotapi.NewMessage(chatID, "Выберите товар, на который хотите задать скидку:")
+					msg.ReplyMarkup = discountsMenuKeyboard()
+					bot.Send(msg)
+				}
+
+			case strings.HasPrefix(callback.Data, "setdiscount_"):
+				idStr := strings.TrimPrefix(callback.Data, "setdiscount_")
+				id, err := strconv.Atoi(idStr)
+				if err == nil {
+					drafts[chatID] = &ProductDraft{Step: StepWaitingDiscount, DiscountProductID: id}
+					bot.Send(tgbotapi.NewMessage(chatID, "Введите сумму скидки в рублях (0 - чтобы убрать скидку):"))
+				}
+
 			case callback.Data == "admin_delete_product":
 				if len(products) == 0 {
 					bot.Send(tgbotapi.NewMessage(chatID, "Нет товаров для удаления."))
@@ -323,10 +352,10 @@ func main() {
 				text := "Ваша корзина:\n"
 				var total float64
 				for _, item := range cart {
-					text += fmt.Sprintf("%s (%s) - %.2f₽\n", item.ProductName, item.Color, item.Price)
+					text += fmt.Sprintf("%s (%s) - %s₽\n", item.ProductName, item.Color, formatPrice(item.Price))
 					total += item.Price
 				}
-				text += fmt.Sprintf("\nИтого: %.2f₽", total)
+				text += fmt.Sprintf("\nИтого: %s₽", formatPrice(total))
 				msg := tgbotapi.NewMessage(update.Message.Chat.ID, text)
 				msg.ReplyMarkup = cartKeyboard(cart)
 				bot.Send(msg)
@@ -394,6 +423,21 @@ func handleAdminStep(bot *tgbotapi.BotAPI, message *tgbotapi.Message, draft *Pro
 		saveBanners()
 		delete(drafts, chatID)
 		bot.Send(tgbotapi.NewMessage(chatID, "✅Баннер сохранён."))
+
+	case StepWaitingDiscount:
+		amount, err := strconv.ParseFloat(message.Text, 64)
+		if err != nil {
+			bot.Send(tgbotapi.NewMessage(chatID, "Это не похоже на число. Введите сумму скидки ещё раз:"))
+			return
+		}
+		for i := range products {
+			if products[i].ID == draft.DiscountProductID {
+				products[i].DiscountAmount = amount
+			}
+		}
+		saveProducts()
+		delete(drafts, chatID)
+		bot.Send(tgbotapi.NewMessage(chatID, "✅ Скидка сохранена."))
 	}
 }
 

@@ -28,17 +28,19 @@ const (
 	StepWaitingCategoryName AdminStep = "waiting_category_name"
 	StepWaitingPhoto        AdminStep = "waiting_photo"
 	StepWaitingBanner       AdminStep = "waiting_banner"
+	StepWaitingDiscount     AdminStep = "waiting_discount"
 )
 
 type ProductDraft struct {
-	Name          string
-	Price         float64
-	Description   string
-	Category      string
-	Colors        []string
-	Step          AdminStep
-	PhotoFileID   string
-	BannerSection string
+	Name              string
+	Price             float64
+	Description       string
+	Category          string
+	Colors            []string
+	Step              AdminStep
+	PhotoFileID       string
+	BannerSection     string
+	DiscountProductID int
 }
 
 var drafts = map[int64]*ProductDraft{}

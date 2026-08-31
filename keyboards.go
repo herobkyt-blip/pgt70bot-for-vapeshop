@@ -17,6 +17,9 @@ func adminMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
 		tgbotapi.NewInlineKeyboardRow(
 			tgbotapi.NewInlineKeyboardButtonData("🖼 Баннеры", "admin_banners_menu"),
 		),
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("💸 Скидки", "admin_discounts_menu"),
+		),
 	)
 }
 
@@ -83,7 +86,16 @@ func productsInCategoryKeyboard(category string) tgbotapi.InlineKeyboardMarkup {
 func variantsKeyboard(product Product) tgbotapi.InlineKeyboardMarkup {
 	var rows [][]tgbotapi.InlineKeyboardButton
 	for i, v := range product.Variants {
-		label := fmt.Sprintf("%s - %.2f₽", v.Color, v.Price)
+		price := v.Price - product.DiscountAmount
+		if price < 0 {
+			price = 0
+		}
+		var label string
+		if product.DiscountAmount > 0 {
+			label = fmt.Sprintf("%s - %s₽ (было %s₽)", v.Color, formatPrice(price), formatPrice(v.Price))
+		} else {
+			label = fmt.Sprintf("%s - %s₽", v.Color, formatPrice(v.Price))
+		}
 		if !v.InStock {
 			label += " (нет в наличии)"
 		}
@@ -128,6 +140,18 @@ func deleteProductKeyboad() tgbotapi.InlineKeyboardMarkup {
 		button := tgbotapi.NewInlineKeyboardButtonData(p.Name, fmt.Sprintf("delprod_%d", p.ID))
 		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
 	}
+	return tgbotapi.NewInlineKeyboardMarkup(rows...)
+}
+
+func discountsMenuKeyboard() tgbotapi.InlineKeyboardMarkup {
+	var rows [][]tgbotapi.InlineKeyboardButton
+	for _, p := range products {
+		button := tgbotapi.NewInlineKeyboardButtonData(p.Name, fmt.Sprintf("setdiscount_%d", p.ID))
+		rows = append(rows, tgbotapi.NewInlineKeyboardRow(button))
+	}
+	rows = append(rows, tgbotapi.NewInlineKeyboardRow(
+		tgbotapi.NewInlineKeyboardButtonData("⬅️ Назад", "admin_main_menu"),
+	))
 	return tgbotapi.NewInlineKeyboardMarkup(rows...)
 }
 

@@ -7,12 +7,13 @@ type Variant struct {
 }
 
 type Product struct {
-	ID          int
-	Name        string
-	Description string
-	Category    string
-	PhotoFileID string
-	Variants    []Variant
+	ID             int
+	Name           string
+	Description    string
+	Category       string
+	PhotoFileID    string
+	Variants       []Variant
+	DiscountAmount float64
 }
 
 var products = []Product{}
